@@ -1,3 +1,4 @@
+'use client';
 import Image from 'next/image';
 import { IProduct } from '../interface';
 import Header from './Header';
@@ -12,8 +13,11 @@ const ProductDetail = ({ product }: { product: IProduct }) => {
                     Back to Product
                 </button>
             </Link>
-            <div className="mt-4 mx-4">
-                <h1 className="text-2xl font-semibold mb-2">{product.id}</h1>
+            <div className="mt-4">
+                <div className="flex gap-x-10">
+                    <h1 className="text-2xl font-semibold mb-2">{product.title}</h1>
+                    <p className="text-2xl font-semibold mb-2">{product.price} $</p>
+                </div>
                 <p className="text-gray-600 mb-4">{product.description}</p>
                 {!!product.images.length && (
                     <div className="flex flex-wrap">

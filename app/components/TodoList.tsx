@@ -1,45 +1,58 @@
 'use client';
-import { GetServerSideProps } from 'next';
 import Link from 'next/link';
 import { useState } from 'react';
-import { Tasks } from '../interface';
-
-const initialState: Tasks[] = JSON.parse(localStorage.getItem('task') || '[]');
+import { useSelector, useDispatch } from 'react-redux';
+import { AppDispatch, RootState } from '../store';
+import { addTodo, removeTodo, toggleComplete, editTodo } from '../store/todoSlice';
 
 const TodoList = () => {
+    const dispatch = useDispatch<AppDispatch>();
+    const taskList = useSelector((state: RootState) => state.todos);
     const [task, setTask] = useState<string>('');
-    const [taskList, setTaskList] = useState<Tasks[]>(initialState);
+    const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
+    const [editedTaskTitle, setEditedTaskTitle] = useState<string>('');
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
         setTask(e.target.value);
     };
 
     const handleAddTask = () => {
-        const newTaskArr = [{ id: Date.now(), title: task, completed: false }];
         if (task.trim() !== '') {
-            setTaskList((prevTaskList) => {
-                const prevList = Array.isArray(prevTaskList) ? prevTaskList : [];
-
-                const updatedTaskList = [...newTaskArr, ...prevList];
-                localStorage.setItem('task', JSON.stringify(updatedTaskList));
-                return updatedTaskList;
-            });
+            const newTask = { id: Date.now(), title: task, completed: false };
+            dispatch(addTodo(newTask));
             setTask('');
         }
     };
 
     const handleDeleteTask = (taskId: number) => {
-        const removeTask = taskList.filter((task) => task.id !== taskId);
-        setTaskList(removeTask);
-        localStorage.setItem('task', JSON.stringify(removeTask));
+        dispatch(removeTodo(taskId));
     };
 
     const handleCompleteTask = (taskId: number) => {
-        const completedTask = taskList.find((task) => task.id === taskId);
-        if (completedTask) {
-            completedTask.completed = !completedTask.completed;
+        dispatch(toggleComplete(taskId));
+    };
+
+    const startEditingTask = (taskId: number) => {
+        const taskToEdit = taskList.find((task) => task.id === taskId);
+        if (taskToEdit) {
+            setEditingTaskId(taskId);
+            setEditedTaskTitle(taskToEdit.title);
         }
-        localStorage.setItem('task', JSON.stringify(taskList));
+    };
+
+    const handleEditTask = (taskId: number) => {
+        if (editedTaskTitle.trim() === '') {
+            return;
+        }
+        const updatedTask = { id: taskId, title: editedTaskTitle, completed: false };
+        dispatch(editTodo(updatedTask));
+        setEditingTaskId(null);
+        setEditedTaskTitle('');
+    };
+
+    const handleCancelEdit = () => {
+        setEditingTaskId(null);
+        setEditedTaskTitle('');
     };
 
     return (
@@ -65,28 +78,63 @@ const TodoList = () => {
                             key={task.id}
                         >
                             <span className="flex items-center">
-                                <Link
-                                    href={`/todo/${task.id}`}
-                                    style={{ textDecoration: `${task.completed}` ? 'line-throught' : 'none' }}
-                                >
-                                    <span>{task.title}</span>
-                                </Link>
+                                {editingTaskId === task.id ? (
+                                    <input
+                                        type="text"
+                                        value={editedTaskTitle}
+                                        onChange={(e) => setEditedTaskTitle(e.target.value)}
+                                    />
+                                ) : (
+                                    <Link
+                                        href={`/todo/${task.id}`}
+                                        style={{ textDecoration: task.completed ? 'line-through' : 'none' }}
+                                    >
+                                        <span>{task.title}</span>
+                                    </Link>
+                                )}
                             </span>
+
                             <div className="flex__action">
-                                <span
-                                    role="button"
-                                    className="text-red-500 cursor-pointer hover:text-red-700 ml-4"
-                                    onClick={() => handleDeleteTask(task.id)}
-                                >
-                                    ❌
-                                </span>
-                                <span
-                                    role="button"
-                                    className="text-green-500 cursor-pointer hover:text-green-700 ml-4"
-                                    onClick={() => handleCompleteTask(task.id)}
-                                >
-                                    ✔
-                                </span>
+                                {editingTaskId === task.id ? (
+                                    <div>
+                                        <button
+                                            className="text-blue-500 cursor-pointer hover:text-blue-700 ml-4"
+                                            onClick={() => handleEditTask(task.id)}
+                                        >
+                                            Save
+                                        </button>
+                                        <button
+                                            className="text-red-500 cursor-pointer hover:text-red-700 ml-4"
+                                            onClick={handleCancelEdit}
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div>
+                                        <span
+                                            role="button"
+                                            className="text-red-500 cursor-pointer hover:text-red-700 ml-4"
+                                            onClick={() => handleDeleteTask(task.id)}
+                                        >
+                                            ❌
+                                        </span>
+                                        <span
+                                            role="button"
+                                            className="text-green-500 cursor-pointer hover:text-green-700 ml-4"
+                                            onClick={() => handleCompleteTask(task.id)}
+                                        >
+                                            ✔
+                                        </span>
+                                        <span
+                                            role="button"
+                                            className="text-blue-500 cursor-pointer hover:text-blue-700 ml-4"
+                                            onClick={() => startEditingTask(task.id)}
+                                        >
+                                            Edit
+                                        </span>
+                                    </div>
+                                )}
                             </div>
                         </li>
                     ))}
