@@ -18,7 +18,9 @@ const TodoList = () => {
         const newTaskArr = [{ id: Date.now(), title: task, completed: false }];
         if (task.trim() !== '') {
             setTaskList((prevTaskList) => {
-                const updatedTaskList = [...newTaskArr, ...prevTaskList];
+                const prevList = Array.isArray(prevTaskList) ? prevTaskList : [];
+
+                const updatedTaskList = [...newTaskArr, ...prevList];
                 localStorage.setItem('task', JSON.stringify(updatedTaskList));
                 return updatedTaskList;
             });
@@ -33,23 +35,23 @@ const TodoList = () => {
     };
 
     const handleCompleteTask = (taskId: number) => {
-        const completed = taskList.find((task) => task.id === taskId);
-        if (completed) {
-            completed.completed = !completed.completed;
+        const completedTask = taskList.find((task) => task.id === taskId);
+        if (completedTask) {
+            completedTask.completed = !completedTask.completed;
         }
-        localStorage.setItem('task', JSON.stringify(completed));
+        localStorage.setItem('task', JSON.stringify(taskList));
     };
 
     return (
         <div className="container mx-auto p-4">
             <input
-                className="border rounded p-2 mb-2"
+                className="border rounded p-2 mb-2 text-lg w-full"
                 placeholder="Add something ... 🦔"
                 value={task}
                 onChange={handleChange}
             />
             <button
-                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mx-4"
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded my-4"
                 onClick={handleAddTask}
             >
                 Add
@@ -59,31 +61,33 @@ const TodoList = () => {
                 {!!taskList.length &&
                     taskList.map((task) => (
                         <li
-                            className="border p-2 mb-2 hover:bg-gray-100 flex items-center justify-between"
+                            className="border p-4 mb-4 hover:bg-gray-100 flex items-center justify-between rounded-lg"
                             key={task.id}
                         >
                             <span className="flex items-center">
-                                <Link href={`/todo/${task.id}`}>
-                                    <span style={{ textDecoration: `${task.completed} ? "line-throught" : "none"` }}>
-                                        {task.title}
-                                    </span>
+                                <Link
+                                    href={`/todo/${task.id}`}
+                                    style={{ textDecoration: `${task.completed}` ? 'line-throught' : 'none' }}
+                                >
+                                    <span>{task.title}</span>
                                 </Link>
-
+                            </span>
+                            <div className="flex__action">
                                 <span
                                     role="button"
-                                    className="text-red-500 cursor-pointer hover:text-red-700"
+                                    className="text-red-500 cursor-pointer hover:text-red-700 ml-4"
                                     onClick={() => handleDeleteTask(task.id)}
                                 >
                                     ❌
                                 </span>
-                            </span>
-                            <span
-                                role="button"
-                                className="text-green-500 cursor-pointer hover:text-green-700"
-                                onClick={() => handleCompleteTask(task.id)}
-                            >
-                                ✔
-                            </span>
+                                <span
+                                    role="button"
+                                    className="text-green-500 cursor-pointer hover:text-green-700 ml-4"
+                                    onClick={() => handleCompleteTask(task.id)}
+                                >
+                                    ✔
+                                </span>
+                            </div>
                         </li>
                     ))}
             </ul>

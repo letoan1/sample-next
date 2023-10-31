@@ -2,6 +2,7 @@ export interface Products {
     id: string;
     title: string;
     price: number;
+    thumbnail: string;
 }
 
 export interface Tasks {
@@ -17,6 +18,5 @@ export interface IProduct extends Products {
     stock: number;
     brand: string;
     category: string;
-    thumbnail: string;
     images: [];
 }
