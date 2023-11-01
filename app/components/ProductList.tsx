@@ -2,11 +2,15 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { fetchProduct } from '../apis/product';
-import { Products } from '../interface';
+import { IProduct } from '../interface';
 import Image from 'next/image';
+import { useDispatch } from 'react-redux';
+import { addWishlist } from '../store/wishlistSlice';
+import { AppDispatch } from '../store';
 
 const ProductList = () => {
-    const [productList, setProductList] = useState<Products[]>([]);
+    const dispatch = useDispatch<AppDispatch>();
+    const [productList, setProductList] = useState<IProduct[]>([]);
 
     useEffect(() => {
         (async function () {
@@ -14,6 +18,10 @@ const ProductList = () => {
             setProductList(data);
         })();
     }, []);
+
+    const handleAddToWishlist = (product: IProduct) => {
+        dispatch(addWishlist(product));
+    };
 
     return (
         <div className="container mx-auto p-4">
@@ -28,6 +36,12 @@ const ProductList = () => {
                                 Go to Detail
                             </button>
                         </Link>
+                        <button
+                            className="btn-wishlist mt-4 bg-green-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mx-2"
+                            onClick={() => handleAddToWishlist(product)}
+                        >
+                            Add wishlist
+                        </button>
                     </div>
                 ))}
             </ul>
